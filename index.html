@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PV & Wallbox Cockpit</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f0f0f; color: #e0e0e0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        h1 { color: #ffffff; margin-bottom: 25px; font-weight: 300; letter-spacing: 2px; font-size: 1.5rem; }
+        .card { background: #1a1a1a; padding: 20px; border-radius: 25px; width: 100%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .section-title { color: #ffcc00; font-size: 0.7rem; text-transform: uppercase; margin-top: 25px; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        
+        .device-box { border: 1px solid #333; padding: 10px 15px; border-radius: 15px; margin: 8px 0; display: flex; justify-content: space-between; align-items: center; transition: all 0.3s ease; }
+        .label { font-size: 0.85rem; color: #888; display: flex; align-items: center; gap: 8px; }
+        .value { font-size: 1.2rem; font-weight: 600; color: #ffffff; }
+        .unit { font-size: 0.7rem; color: #888; margin-left: 4px; }
+        
+        /* Status-Farben */
+        .active-red { border-color: #ff3b30 !important; color: #ff3b30 !important; }
+        .active-green { border-color: #32d74b !important; color: #32d74b !important; }
+        .active-blue { border-color: #007aff !important; color: #007aff !important; }
+        .active-orange { border-color: #ff9500 !important; color: #ff9500 !important; }
+    </style>
+</head>
+<body>
+
+    <h1>PV ANLAGE HOME</h1>
+
+    <div class="card">
+        <div class="section-title">Erzeugung & Netz</div>
+        <div id="gesamt-box" class="device-box"><span class="label">☀️ Gesamt</span><div class="value"><span id="gesamt">--</span><span class="unit">W</span></div></div>
+        <div id="sued-box" class="device-box"><span class="label">🌅 Süd</span><div class="value"><span id="sued">--</span><span class="unit">W</span></div></div>
+        <div id="nord-box" class="device-box"><span class="label">🌇 Nord</span><div class="value"><span id="nord">--</span><span class="unit">W</span></div></div>
+        <div id="netz-box" class="device-box"><span class="label">🌐 Netzbezug</span><div class="value"><span id="netz">--</span><span class="unit">W</span></div></div>
+
+        <div class="section-title">Mobilität (Wallbox)</div>
+        <div id="wb-box" class="device-box"><span class="label" id="wb-status">🚗 Wallbox</span><div class="value"><span id="wallbox">0.0</span><span class="unit">kW</span></div></div>
+        <div id="wb-session-box" class="device-box"><span class="label">⚡ Session (kWh / Zeit)</span><div class="value"><span id="wb-session">0.0</span><span class="unit">/</span><span id="wb-time">0</span><span class="unit">m</span></div></div>
+        <div class="device-box"><span class="label">🔹 Leap (M/J)</span><div class="value"><span id="leap-m">0</span><span class="unit">/</span><span id="leap-j">0</span><span class="unit">kWh</span></div></div>
+        <div class="device-box"><span class="label">🔹 MG (Monat)</span><div class="value"><span id="mg-m">0</span><span class="unit">kWh</span></div></div>
+
+        <div class="section-title">Verbraucher</div>
+        <div id="spuel-box" class="device-box"><span class="label">🍽️ Spülmaschine</span><div class="value"><span id="spuel">--</span><span class="unit">W</span></div></div>
+        <div id="wasch-box" class="device-box"><span class="label">👕 Waschmaschine</span><div class="value"><span id="wasch">--</span><span class="unit">W</span></div></div>
+        <div id="trockner-box" class="device-box"><span class="label">🧥 Trockner</span><div class="value"><span id="trockner">--</span><span class="unit">W</span></div></div>
+        <div id="pumpe-box" class="device-box"><span class="label">💧 Brunnenpumpe</span><div class="value"><span id="pumpe">--</span><span class="unit">W</span></div></div>
+        <div id="kaffee-box" class="device-box"><span class="label">☕ Kaffeemaschine</span><div class="value"><span id="kaffee">--</span><span class="unit">W</span></div></div>
+
+        <div class="section-title">Autark</div>
+        <div id="aut_tag-box" class="device-box"><span class="label">📅 Tag</span><div class="value"><span id="aut_tag">--</span><span class="unit">%</span></div></div>
+        <div id="aut_monat-box" class="device-box"><span class="label">🗓️ Monat</span><div class="value"><span id="aut_monat">--</span><span class="unit">%</span></div></div>
+        <div id="aut_jahr-box" class="device-box"><span class="label">🌳 Jahr</span><div class="value"><span id="aut_jahr">--</span><span class="unit">%</span></div></div>
+        <div id="aut_total-box" class="device-box"><span class="label">♾️ Total</span><div class="value"><span id="aut_total">--</span><span class="unit">%</span></div></div>
+
+        <div class="section-title">Batterie</div>
+        <div class="device-box"><span class="label">📊 Ladestand</span><div class="value"><span id="soc">--</span><span class="unit">%</span></div></div>
+        <div id="bat_in-box" class="device-box"><span class="label">🔋 Laden</span><div class="value"><span id="bat_in">--</span><span class="unit">W</span></div></div>
+        <div id="bat_out-box" class="device-box"><span class="label">🔋 Entladen</span><div class="value"><span id="bat_out">--</span><span class="unit">W</span></div></div>
+    </div>
+
+    <script>
+        const HA_URL = "https://1cbgsjyyusu6ydzrcy6uaqjcj5wrbyhw.ui.nabu.casa";
+        const TOKEN = "HIER_DEINEN_TOKEN_EINFÜGEN"; 
+
+        async function fetchSensor(entityId) {
+            try {
+                const res = await fetch(`${HA_URL}/api/states/${entityId}`, {
+                    headers: { "Authorization": `Bearer ${TOKEN}`, "Content-Type": "application/json" }
+                });
+                return await res.json();
+            } catch (e) { return { state: "0" }; }
+        }
+
+        async function updateAll() {
+            // Basis
+            const gesamt = await fetchSensor("sensor.pv_gesamterzeugung");
+            document.getElementById("gesamt").innerText = Math.round(parseFloat(gesamt.state) || 0);
+            document.getElementById("gesamt-box").className = "device-box " + (parseFloat(gesamt.state) >= 3000 ? "active-green" : "active-orange");
+
+            const sued = await fetchSensor("sensor.scb_dc2_power");
+            document.getElementById("sued").innerText = Math.round(parseFloat(sued.state) || 0);
+            document.getElementById("sued-box").className = "device-box " + (parseFloat(sued.state) >= 500 ? "active-green" : "active-orange");
+
+            const nord = await fetchSensor("sensor.scb_dc1_power");
+            document.getElementById("nord").innerText = Math.round(parseFloat(nord.state) || 0);
+            document.getElementById("nord-box").className = "device-box " + (parseFloat(nord.state) >= 500 ? "active-green" : "active-orange");
+
+            const netz = await fetchSensor("sensor.scb_grid_power");
+            const netzVal = parseFloat(netz.state) || 0;
+            document.getElementById("netz").innerText = Math.round(netzVal);
+            document.getElementById("netz-box").className = "device-box " + (netzVal > 0 ? "active-red" : netzVal < 0 ? "active-green" : "");
+
+            // Wallbox
+            const wb = await fetchSensor("sensor.charger_power_active_import");
+            const wbVal = Math.max(0, parseFloat(wb.state) || 0);
+            document.getElementById("wallbox").innerText = (wbVal / 1000).toFixed(1);
+            document.getElementById("wb-box").className = "device-box " + (wbVal >= 4000 ? "active-orange" : "");
+            document.getElementById("wb-status").innerText = wbVal > 7000 ? "🚗 Laden: Leap" : wbVal >= 4000 ? "🚗 Laden: MG" : "🚗 Wallbox";
+            
+            const session = await fetchSensor("sensor.charger_energy_session");
+            const time = await fetchSensor("sensor.charger_time_session");
+            const sessionVal = parseFloat(session.state) || 0;
+            document.getElementById("wb-session").innerText = sessionVal.toFixed(1);
+            document.getElementById("wb-time").innerText = Math.round(parseFloat(time.state) || 0);
+            document.getElementById("wb-session-box").className = "device-box " + (sessionVal > 0.1 ? "active-blue" : "");
+
+            document.getElementById("leap-m").innerText = Math.round(parseFloat((await fetchSensor("sensor.leapmotor_monats_verbrauch")).state) || 0);
+            document.getElementById("leap-j").innerText = Math.round(parseFloat((await fetchSensor("sensor.leapmotor_jahres_verbrauch")).state) || 0);
+            document.getElementById("mg-m").innerText = Math.round(parseFloat((await fetchSensor("sensor.mg_zs_monats_verbrauch")).state) || 0);
+
+            // Verbraucher & Autark
+            const v_ids = ["sensor.0xa4c138e9c794f547_power", "sensor.shelly1pmminig3_34b7da8c3c40_power", "sensor.shelly1pmminig3_543204521224_power", "sensor.shelly1pmminig3_54320456041c_switch_0_power", "sensor.stecker_06_power"];
+            const v_el = ["spuel", "wasch", "trockner", "pumpe", "kaffee"];
+            const v_box = ["spuel-box", "wasch-box", "trockner-box", "pumpe-box", "kaffee-box"];
+            for(let i=0; i<v_ids.length; i++) {
+                const s = await fetchSensor(v_ids[i]);
+                const v = Math.round(parseFloat(s.state) || 0);
+                document.getElementById(v_el[i]).innerText = v;
+                document.getElementById(v_box[i]).className = "device-box " + (v > 5 ? "active-orange" : "");
+            }
+
+            const aut_ids = ["sensor.scb_autarky_day", "sensor.scb_autarky_month", "sensor.scb_autarky_year", "sensor.scb_autarky_total"];
+            const aut_el = ["aut_tag", "aut_monat", "aut_jahr", "aut_total"];
+            for(let i=0; i<4; i++) {
+                const s = await fetchSensor(aut_ids[i]);
+                const val = Math.round(parseFloat(s.state) || 0);
+                document.getElementById(aut_el[i]).innerText = val;
+                document.getElementById(aut_el[i]+"-box").className = "device-box " + (val >= 50 ? "active-green" : "active-orange");
+            }
+
+            document.getElementById("soc").innerText = Math.round(parseFloat((await fetchSensor("sensor.scb_battery_soc")).state) || 0);
+            const b_in = Math.round(parseFloat((await fetchSensor("sensor.scb_pv_to_battery_power")).state) || 0);
+            const b_out = Math.round(parseFloat((await fetchSensor("sensor.scb_home_power_from_battery")).state) || 0);
+            document.getElementById("bat_in").innerText = b_in;
+            document.getElementById("bat_out").innerText = b_out;
+            document.getElementById("bat_in-box").className = "device-box " + (b_in > 5 ? "active-blue" : "");
+            document.getElementById("bat_out-box").className = "device-box " + (b_out > 5 ? "active-blue" : "");
+        }
+        
+        setInterval(updateAll, 10000);
+        updateAll();
+    </script>
+</body>
+</html>
