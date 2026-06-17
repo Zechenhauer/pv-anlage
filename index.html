@@ -47,7 +47,7 @@
 
         <div class="section-title">Autark</div>
         <div id="aut_tag-box" class="device-box"><span class="label">📅 Tag</span><div class="value"><span id="aut_tag">--</span><span class="unit">%</span></div></div>
-        <div id="aut_woche-box" class="device-box"><span class="label">🗓️ Woche</span><div class="value"><span id="aut_woche">--</span><span class="unit">%</span></div></div>
+        <div id="aut_monat-box" class="device-box"><span class="label">🗓️ Monat</span><div class="value"><span id="aut_monat">--</span><span class="unit">%</span></div></div>
         <div id="aut_jahr-box" class="device-box"><span class="label">🌳 Jahr</span><div class="value"><span id="aut_jahr">--</span><span class="unit">%</span></div></div>
         <div id="aut_total-box" class="device-box"><span class="label">♾️ Total</span><div class="value"><span id="aut_total">--</span><span class="unit">%</span></div></div>
 
@@ -117,7 +117,7 @@
 
             // Autark
             const aut_ids = ["sensor.scb_autarky_day", "sensor.scb_autarky_month", "sensor.scb_autarky_year", "sensor.scb_autarky_total"];
-            const aut_el = ["aut_tag", "aut_woche", "aut_jahr", "aut_total"];
+            const aut_el = ["aut_tag", "aut_monat", "aut_jahr", "aut_total"];
             for(let i=0; i<4; i++) {
                 const s = await fetchSensor(aut_ids[i]);
                 const val = Math.round(parseFloat(s.state) || 0);
