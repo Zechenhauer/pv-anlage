@@ -20,6 +20,9 @@
         .active-green { border-color: #32d74b !important; color: #32d74b !important; }
         .active-blue { border-color: #007aff !important; color: #007aff !important; }
         .active-orange { border-color: #ff9500 !important; color: #ff9500 !important; }
+        
+        /* Sub-Info für getrennte Sessions */
+        .session-sub { font-size: 0.75rem; color: #007aff; font-weight: normal; margin-right: 8px; }
     </style>
 </head>
 <body>
@@ -35,9 +38,22 @@
 
         <div class="section-title">Mobilität (Wallbox)</div>
         <div id="wb-box" class="device-box"><span class="label" id="wb-status">🚗 Wallbox</span><div class="value"><span id="wallbox">0.0</span><span class="unit">kW</span></div></div>
-        <div id="wb-session-box" class="device-box"><span class="label">⚡ Session (kWh / Zeit)</span><div class="value"><span id="wb-session">0.0</span><span class="unit">/</span><span id="wb-time">0</span></div></div>
-        <div class="device-box"><span class="label">🔹 Leap (M/J)</span><div class="value"><span id="leap-m">0</span><span class="unit">/</span><span id="leap-j">0</span><span class="unit">kWh</span></div></div>
-        <div class="device-box"><span class="label">🔹 MG (M/J)</span><div class="value"><span id="mg-m">0</span><span class="unit">/</span><span id="mg-j">0</span><span class="unit">kWh</span></div></div>
+        
+        <div id="leap-box" class="device-box">
+            <span class="label">🔹 Leap (M/J)</span>
+            <div class="value">
+                <span id="leap-session" class="session-sub">0.0 / 0m</span>
+                <span id="leap-m">0</span><span class="unit">/</span><span id="leap-j">0</span><span class="unit">kWh</span>
+            </div>
+        </div>
+        
+        <div id="mg-box" class="device-box">
+            <span class="label">🔹 MG (M/J)</span>
+            <div class="value">
+                <span id="mg-session" class="session-sub">0.0 / 0m</span>
+                <span id="mg-m">0</span><span class="unit">/</span><span id="mg-j">0</span><span class="unit">kWh</span>
+            </div>
+        </div>
 
         <div class="section-title">Verbraucher</div>
         <div id="spuel-box" class="device-box"><span class="label">🍽️ Spülmaschine</span><div class="value"><span id="spuel">--</span><span class="unit">W</span></div></div>
@@ -94,25 +110,43 @@
             const wb = await fetchSensor("sensor.charger_power_active_import");
             const wbVal = Math.max(0, parseFloat(wb.state) || 0);
             document.getElementById("wallbox").innerText = wbVal.toFixed(1);
-            document.getElementById("wb-box").className = "device-box " + (wbVal >= 4.0 ? "active-orange" : "");
-            document.getElementById("wb-status").innerText = wbVal > 7.0 ? "🚗 Laden: Leap" : wbVal >= 4.0 ? "🚗 Laden: MG" : "🚗 Wallbox";
+            document.getElementById("wb-box").className = "device-box " + (wbVal >= 0.1 ? "active-orange" : "");
             
+            // Ermitteln, welches Auto lädt
+            const isLeap = wbVal > 7.0;
+            const isMg = wbVal >= 4.0 && wbVal <= 7.0;
+            document.getElementById("wb-status").innerText = isLeap ? "🚗 Laden: Leap" : isMg ? "🚗 Laden: MG" : "🚗 Wallbox";
+            
+            // Haupt-Session Daten der Wallbox holen
             const session = await fetchSensor("sensor.charger_energy_session");
             const time = await fetchSensor("sensor.charger_time_session");
             const sessionVal = parseFloat(session.state) || 0;
-            document.getElementById("wb-session").innerText = sessionVal.toFixed(1);
             
             // Umrechnung der Minuten in Stunden und Minuten (Xh Ym)
             const totalMinutes = Math.round(parseFloat(time.state) || 0);
+            let timeString = "";
             if (totalMinutes >= 60) {
                 const hours = Math.floor(totalMinutes / 60);
                 const mins = totalMinutes % 60;
-                document.getElementById("wb-time").innerText = `${hours}h ${mins}m`;
+                timeString = `${hours}h ${mins}m`;
             } else {
-                document.getElementById("wb-time").innerText = `${totalMinutes}m`;
+                timeString = `${totalMinutes}m`;
             }
             
-            document.getElementById("wb-session-box").className = "device-box " + (sessionVal > 0.1 ? "active-blue" : "");
+            // Session live dem ladenden Auto zuweisen & Box blau färben
+            if (isLeap && sessionVal > 0.1) {
+                document.getElementById("leap-session").innerText = `${sessionVal.toFixed(1)} / ${timeString}`;
+                document.getElementById("leap-box").className = "device-box active-blue";
+                document.getElementById("mg-box").className = "device-box";
+            } else if (isMg && sessionVal > 0.1) {
+                document.getElementById("mg-session").innerText = `${sessionVal.toFixed(1)} / ${timeString}`;
+                document.getElementById("mg-box").className = "device-box active-blue";
+                document.getElementById("leap-box").className = "device-box";
+            } else {
+                // Wenn nicht geladen wird, Färbung entfernen (Werte bleiben als "letzte Session" stehen)
+                document.getElementById("leap-box").className = "device-box";
+                document.getElementById("mg-box").className = "device-box";
+            }
 
             // Autoverbräuche (Monat & Jahr aus den neuen Verlaufssensoren)
             document.getElementById("leap-m").innerText = Math.round(parseFloat((await fetchSensor("sensor.leapmotor_monats_verbrauch")).state) || 0);
