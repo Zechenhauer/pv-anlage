@@ -90,12 +90,12 @@
             document.getElementById("netz").innerText = Math.round(netzVal);
             document.getElementById("netz-box").className = "device-box " + (netzVal > 0 ? "active-red" : netzVal < 0 ? "active-green" : "");
 
-            // Wallbox
+            // Wallbox - angepasst auf kW Messung
             const wb = await fetchSensor("sensor.charger_power_active_import");
             const wbVal = Math.max(0, parseFloat(wb.state) || 0);
-            document.getElementById("wallbox").innerText = (wbVal / 1000).toFixed(1);
-            document.getElementById("wb-box").className = "device-box " + (wbVal >= 4000 ? "active-orange" : "");
-            document.getElementById("wb-status").innerText = wbVal > 7000 ? "🚗 Laden: Leap" : wbVal >= 4000 ? "🚗 Laden: MG" : "🚗 Wallbox";
+            document.getElementById("wallbox").innerText = wbVal.toFixed(1);
+            document.getElementById("wb-box").className = "device-box " + (wbVal >= 4.0 ? "active-orange" : "");
+            document.getElementById("wb-status").innerText = wbVal > 7.0 ? "🚗 Laden: Leap" : wbVal >= 4.0 ? "🚗 Laden: MG" : "🚗 Wallbox";
             
             const session = await fetchSensor("sensor.charger_energy_session");
             const time = await fetchSensor("sensor.charger_time_session");
