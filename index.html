@@ -35,7 +35,7 @@
 
         <div class="section-title">Mobilität (Wallbox)</div>
         <div id="wb-box" class="device-box"><span class="label" id="wb-status">🚗 Wallbox</span><div class="value"><span id="wallbox">0.0</span><span class="unit">kW</span></div></div>
-        <div id="wb-session-box" class="device-box"><span class="label">⚡ Session (kWh / Zeit)</span><div class="value"><span id="wb-session">0.0</span><span class="unit">/</span><span id="wb-time">0</span><span class="unit">m</span></div></div>
+        <div id="wb-session-box" class="device-box"><span class="label">⚡ Session (kWh / Zeit)</span><div class="value"><span id="wb-session">0.0</span><span class="unit">/</span><span id="wb-time">0</span></div></div>
         <div class="device-box"><span class="label">🔹 Leap (M/J)</span><div class="value"><span id="leap-m">0</span><span class="unit">/</span><span id="leap-j">0</span><span class="unit">kWh</span></div></div>
         <div class="device-box"><span class="label">🔹 MG (M/J)</span><div class="value"><span id="mg-m">0</span><span class="unit">/</span><span id="mg-j">0</span><span class="unit">kWh</span></div></div>
 
@@ -101,7 +101,17 @@
             const time = await fetchSensor("sensor.charger_time_session");
             const sessionVal = parseFloat(session.state) || 0;
             document.getElementById("wb-session").innerText = sessionVal.toFixed(1);
-            document.getElementById("wb-time").innerText = Math.round(parseFloat(time.state) || 0);
+            
+            // Umrechnung der Minuten in Stunden und Minuten (Xh Ym)
+            const totalMinutes = Math.round(parseFloat(time.state) || 0);
+            if (totalMinutes >= 60) {
+                const hours = Math.floor(totalMinutes / 60);
+                const mins = totalMinutes % 60;
+                document.getElementById("wb-time").innerText = `${hours}h ${mins}m`;
+            } else {
+                document.getElementById("wb-time").innerText = `${totalMinutes}m`;
+            }
+            
             document.getElementById("wb-session-box").className = "device-box " + (sessionVal > 0.1 ? "active-blue" : "");
 
             // Autoverbräuche (Monat & Jahr aus den neuen Verlaufssensoren)
