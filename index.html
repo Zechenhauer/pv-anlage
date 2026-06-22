@@ -37,7 +37,7 @@
         <div id="wb-box" class="device-box"><span class="label" id="wb-status">🚗 Wallbox</span><div class="value"><span id="wallbox">0.0</span><span class="unit">kW</span></div></div>
         <div id="wb-session-box" class="device-box"><span class="label">⚡ Session (kWh / Zeit)</span><div class="value"><span id="wb-session">0.0</span><span class="unit">/</span><span id="wb-time">0</span><span class="unit">m</span></div></div>
         <div class="device-box"><span class="label">🔹 Leap (M/J)</span><div class="value"><span id="leap-m">0</span><span class="unit">/</span><span id="leap-j">0</span><span class="unit">kWh</span></div></div>
-        <div class="device-box"><span class="label">🔹 MG (Monat)</span><div class="value"><span id="mg-m">0</span><span class="unit">kWh</span></div></div>
+        <div class="device-box"><span class="label">🔹 MG (M/J)</span><div class="value"><span id="mg-m">0</span><span class="unit">/</span><span id="mg-j">0</span><span class="unit">kWh</span></div></div>
 
         <div class="section-title">Verbraucher</div>
         <div id="spuel-box" class="device-box"><span class="label">🍽️ Spülmaschine</span><div class="value"><span id="spuel">--</span><span class="unit">W</span></div></div>
@@ -104,9 +104,11 @@
             document.getElementById("wb-time").innerText = Math.round(parseFloat(time.state) || 0);
             document.getElementById("wb-session-box").className = "device-box " + (sessionVal > 0.1 ? "active-blue" : "");
 
+            // Autoverbräuche (Monat & Jahr aus den neuen Verlaufssensoren)
             document.getElementById("leap-m").innerText = Math.round(parseFloat((await fetchSensor("sensor.leapmotor_monats_verbrauch")).state) || 0);
-            document.getElementById("leap-j").innerText = Math.round(parseFloat((await fetchSensor("sensor.leapmotor_jahres_verbrauch")).state) || 0);
+            document.getElementById("leap-j").innerText = Math.round(parseFloat((await fetchSensor("sensor.leapmotor_jahresverbrauch_gesamt")).state) || 0);
             document.getElementById("mg-m").innerText = Math.round(parseFloat((await fetchSensor("sensor.mg_zs_monats_verbrauch")).state) || 0);
+            document.getElementById("mg-j").innerText = Math.round(parseFloat((await fetchSensor("sensor.mg_zs_jahresverbrauch_gesamt")).state) || 0);
 
             // Verbraucher & Autark
             const v_ids = ["sensor.0xa4c138e9c794f547_power", "sensor.shelly1pmminig3_34b7da8c3c40_power", "sensor.shelly1pmminig3_543204521224_power", "sensor.shelly1pmminig3_54320456041c_switch_0_power", "sensor.stecker_06_power"];
